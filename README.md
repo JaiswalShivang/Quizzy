@@ -58,7 +58,7 @@ npm install
 
 Create a `.env` file in the server directory:
 ```env
-MONGODB_URI=mongodb://localhost:27017/quizzy
+DATABASE_URL=mongodb://localhost:27017/quizzy
 JWT_SECRETS=your_jwt_secret_key_here
 PORT=3000
 ```
