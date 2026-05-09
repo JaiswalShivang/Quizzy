@@ -43,16 +43,9 @@ const Dashboard = ({ user }) => {
   };
 
   const getFilteredQuizzes = () => {
-    if (user.role === "Teacher") {
-      const myQuizzes = quizzes.filter((quiz) => quiz.teacher._id === user.id);
-      if (filter === "open") return myQuizzes.filter((quiz) => quiz.isOpen);
-      if (filter === "closed") return myQuizzes.filter((quiz) => !quiz.isOpen);
-      return myQuizzes;
-    } else {
-      if (filter === "open") return quizzes.filter((quiz) => quiz.isOpen);
-      if (filter === "closed") return quizzes.filter((quiz) => !quiz.isOpen);
-      return quizzes;
-    }
+    if (filter === "open") return quizzes.filter((quiz) => quiz.isOpen);
+    if (filter === "closed") return quizzes.filter((quiz) => !quiz.isOpen);
+    return quizzes;
   };
 
   const takeQuiz = (quizId) => {

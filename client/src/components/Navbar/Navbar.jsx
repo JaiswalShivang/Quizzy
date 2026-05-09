@@ -31,6 +31,26 @@ const Navbar = ({ user, setLoginUser }) => {
             Dashboard
           </div>
 
+          {user.role === 'Student' && (
+            <div
+              className="nav-link"
+              onClick={() => navigate('/subscribe')}
+              style={{ cursor: 'pointer' }}
+            >
+              Subscribe
+            </div>
+          )}
+
+          {user.role === 'Teacher' && (
+            <div
+              className="nav-link"
+              onClick={() => navigate('/manage-subscriptions')}
+              style={{ cursor: 'pointer' }}
+            >
+              Manage Subscriptions
+            </div>
+          )}
+
           <div className="user-info">
             <div className="user-name">{user.name}</div>
             <div className="user-role">{user.role}</div>

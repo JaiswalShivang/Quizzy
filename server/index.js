@@ -14,9 +14,11 @@ dbConnect();
 
 const authRoutes = require("./routes/authRoutes");
 const quizRoutes = require("./routes/quizRoute");
+const subscriptionRoutes = require("./routes/subscriptionRoutes");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/quiz", quizRoutes);
+app.use("/api/subscription", subscriptionRoutes);
 
 const PORT = 3000;
 

@@ -115,3 +115,20 @@ exports.login = async (req, res) => {
     });
   }
 };
+
+exports.getTeachers = async (req, res) => {
+  try {
+    const teachers = await User.find({ role: "Teacher" }, "name email");
+
+    return res.status(200).json({
+      success: true,
+      teachers,
+    });
+  } catch (error) {
+    console.error("Get teachers error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching teachers",
+    });
+  }
+};
