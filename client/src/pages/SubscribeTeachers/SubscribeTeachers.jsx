@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import "./SubscribeTeachers.css";
 
 const SubscribeTeachers = ({ user }) => {
@@ -15,10 +15,8 @@ const SubscribeTeachers = ({ user }) => {
 
   const fetchTeachers = async () => {
     try {
-      // For now, fetch all users with role Teacher
-      // In a real app, you might have a dedicated endpoint
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:3000/api/auth/teachers", {
+      const response = await api.get("/auth/teachers", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTeachers(response.data.teachers || []);
@@ -30,7 +28,7 @@ const SubscribeTeachers = ({ user }) => {
   const fetchSubscriptions = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:3000/api/subscription/my", {
+      const response = await api.get("/subscription/my", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSubscriptions(response.data.subscriptions || []);
@@ -45,8 +43,8 @@ const SubscribeTeachers = ({ user }) => {
     setRequesting(teacherId);
     try {
       const token = localStorage.getItem("token");
-      await axios.post(
-        "http://localhost:3000/api/subscription/request",
+      await api.post(
+        "/subscription/request",
         { teacherId },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -62,12 +60,9 @@ const SubscribeTeachers = ({ user }) => {
     }
   };
 
-  const isSubscribed = (teacherId) => {
-    return subscriptions.some(sub => sub.teacher._id === teacherId);
-  };
-
-  const isPending = (teacherId) => {
-    return subscriptions.some(sub => sub.teacher._id === teacherId && sub.status === "pending");
+  const getSubscriptionStatus = (teacherId) => {
+    const sub = subscriptions.find(sub => sub.teacher._id === teacherId);
+    return sub ? sub.status : null;
   };
 
   if (loading) {
@@ -79,29 +74,43 @@ const SubscribeTeachers = ({ user }) => {
       <h1>Subscribe to Teachers</h1>
       <p>Select teachers to subscribe to their quizzes.</p>
       <div className="teachers-list">
-        {teachers.map((teacher) => (
-          <div key={teacher._id} className="teacher-card">
-            <div className="teacher-info">
-              <h3>{teacher.name}</h3>
-              <p>{teacher.email}</p>
+        {teachers.map((teacher) => {
+          const status = getSubscriptionStatus(teacher._id);
+          return (
+            <div key={teacher._id} className="teacher-card">
+              <div className="teacher-info">
+                <h3>{teacher.name}</h3>
+                <p>{teacher.email}</p>
+              </div>
+              <div className="teacher-actions">
+                {status === "approved" ? (
+                  <span className="subscribed">Subscribed</span>
+                ) : status === "pending" ? (
+                  <span className="pending">Request Pending</span>
+                ) : status === "rejected" ? (
+                  <div>
+                    <span className="rejected">Rejected</span>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => requestSubscription(teacher._id)}
+                      disabled={requesting === teacher._id}
+                    >
+                      {requesting === teacher._id ? "Sending..." : "Re-request"}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => requestSubscription(teacher._id)}
+                    disabled={requesting === teacher._id}
+                  >
+                    {requesting === teacher._id ? "Sending..." : "Subscribe"}
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="teacher-actions">
-              {isSubscribed(teacher._id) ? (
-                <span className="subscribed">Subscribed</span>
-              ) : isPending(teacher._id) ? (
-                <span className="pending">Request Pending</span>
-              ) : (
-                <button
-                  className="btn btn-primary"
-                  onClick={() => requestSubscription(teacher._id)}
-                  disabled={requesting === teacher._id}
-                >
-                  {requesting === teacher._id ? "Sending..." : "Subscribe"}
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

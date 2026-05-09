@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import "./ManageSubscriptions.css";
 
 const ManageSubscriptions = ({ user }) => {
@@ -14,7 +14,7 @@ const ManageSubscriptions = ({ user }) => {
   const fetchRequests = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:3000/api/subscription/requests", {
+      const response = await api.get("/subscription/requests", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setRequests(response.data.requests || []);
@@ -29,8 +29,8 @@ const ManageSubscriptions = ({ user }) => {
     setResponding(subscriptionId);
     try {
       const token = localStorage.getItem("token");
-      await axios.post(
-        "http://localhost:3000/api/subscription/respond",
+      await api.post(
+        "/subscription/respond",
         { subscriptionId, action },
         {
           headers: { Authorization: `Bearer ${token}` },

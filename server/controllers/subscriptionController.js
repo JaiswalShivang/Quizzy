@@ -22,16 +22,32 @@ exports.requestSubscription = async (req, res) => {
     }
 
     // Check if subscription already exists
-    const existingSub = await Subscription.findOne({
+    let existingSub = await Subscription.findOne({
       student: studentId,
       teacher: teacherId,
     });
 
     if (existingSub) {
-      return res.status(400).json({
-        success: false,
-        message: "Subscription request already exists",
-      });
+      if (existingSub.status === "approved") {
+        return res.status(400).json({
+          success: false,
+          message: "Already subscribed to this teacher",
+        });
+      } else if (existingSub.status === "pending") {
+        return res.status(400).json({
+          success: false,
+          message: "Subscription request already pending",
+        });
+      } else if (existingSub.status === "rejected") {
+        // Allow re-request by resetting to pending
+        existingSub.status = "pending";
+        await existingSub.save();
+        return res.status(200).json({
+          success: true,
+          message: "Subscription request re-sent",
+          subscription: existingSub,
+        });
+      }
     }
 
     const subscription = await Subscription.create({
@@ -134,7 +150,6 @@ exports.getMySubscriptions = async (req, res) => {
 
     const subscriptions = await Subscription.find({
       student: req.user.id,
-      status: "approved",
     }).populate("teacher", "name email");
 
     return res.status(200).json({
