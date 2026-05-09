@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { toast } from "react-toastify";
+import api from "../../api";
 import "./ManageSubscriptions.css";
 
-const ManageSubscriptions = ({ user }) => {
+const ManageSubscriptions = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [responding, setResponding] = useState(null);
@@ -36,11 +37,11 @@ const ManageSubscriptions = ({ user }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      alert(`Request ${action}d!`);
+      toast.success(`Request ${action}d!`);
       fetchRequests();
     } catch (error) {
       console.error("Error responding to request:", error);
-      alert(error.response?.data?.message || "Failed to respond");
+      toast.error(error.response?.data?.message || "Failed to respond");
     } finally {
       setResponding(null);
     }

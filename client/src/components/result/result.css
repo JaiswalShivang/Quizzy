@@ -2,46 +2,47 @@
   max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
+  padding-top: 6rem;
 }
 
 .result-header {
   text-align: center;
   margin-bottom: 30px;
-  background: white;
+  background: rgba(14, 26, 43, 0.8);
   padding: 30px;
   border-radius: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-soft);
 }
 
 .result-header h1 {
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 15px;
   font-size: 2rem;
 }
 
 .result-header h2 {
-  color: #1877f2;
+  color: var(--accent);
   margin-bottom: 10px;
   font-size: 1.5rem;
 }
 
 .result-header p {
-  color: #666;
+  color: var(--text-secondary);
   margin: 0;
   font-size: 16px;
 }
 
 .quiz-summary {
-  background: white;
+  background: rgba(14, 26, 43, 0.8);
   padding: 25px;
   border-radius: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-soft);
   margin-bottom: 20px;
 }
 
 .quiz-summary h3 {
   margin-bottom: 20px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .summary-grid {
@@ -54,25 +55,25 @@
   display: flex;
   justify-content: space-between;
   padding: 10px 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .summary-item span:first-child {
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .summary-item span:last-child {
-  color: #333;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .status-open {
-  color: #28a745;
+  color: var(--success);
 }
 
 .status-closed {
-  color: #dc3545;
+  color: #ff6b7d;
 }
 
 .stats-grid {
@@ -84,34 +85,34 @@
 .stat-card {
   text-align: center;
   padding: 20px;
-  background: #f8f9fa;
+  background: rgba(28, 156, 255, 0.1);
   border-radius: 8px;
-  border: 1px solid #e9ecef;
+  border: 1px solid rgba(28, 156, 255, 0.3);
 }
 
 .stat-number {
   font-size: 2rem;
   font-weight: bold;
-  color: #1877f2;
+  color: var(--accent);
   margin-bottom: 5px;
 }
 
 .stat-label {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
 .student-results {
-  background: white;
+  background: rgba(14, 26, 43, 0.8);
   padding: 25px;
   border-radius: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-soft);
   margin-bottom: 20px;
 }
 
 .student-results h3 {
   margin-bottom: 20px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .table-container {
@@ -127,35 +128,35 @@
 .table-container td {
   padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text-primary);
 }
 
 .table-container th {
-  background-color: #f8f9fa;
+  background-color: rgba(28, 156, 255, 0.1);
   font-weight: 600;
-  color: #333;
 }
 
 .table-container tr:hover {
-  background-color: #f8f9fa;
+  background-color: rgba(28, 156, 255, 0.05);
 }
 
 .no-results {
-  background: white;
+  background: rgba(14, 26, 43, 0.8);
   padding: 40px;
   border-radius: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-soft);
   text-align: center;
   margin-bottom: 20px;
 }
 
 .no-results h3 {
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 10px;
 }
 
 .no-results p {
-  color: #666;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -177,12 +178,12 @@
 }
 
 .back-btn {
-  background-color: #6c757d;
+  background: linear-gradient(135deg, rgba(100, 100, 150, 0.6) 0%, rgba(80, 80, 130, 0.6) 100%);
   color: white;
 }
 
 .preview-btn {
-  background-color: #1877f2;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
   color: white;
 }
 
@@ -198,10 +199,10 @@
 .error-text {
   padding: 20px;
   font-size: 18px;
-  color: #666;
-  background: white;
+  color: var(--text-secondary);
+  background: rgba(14, 26, 43, 0.8);
   border-radius: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-soft);
 }
 
 @media (max-width: 768px) {

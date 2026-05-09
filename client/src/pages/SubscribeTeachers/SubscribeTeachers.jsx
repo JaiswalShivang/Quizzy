@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { toast } from "react-toastify";
+import api from "../../api";
 import "./SubscribeTeachers.css";
 
-const SubscribeTeachers = ({ user }) => {
+const SubscribeTeachers = () => {
   const [teachers, setTeachers] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,11 +53,11 @@ const SubscribeTeachers = ({ user }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      alert("Subscription request sent!");
+      toast.success("Subscription request sent!");
       fetchSubscriptions();
     } catch (error) {
       console.error("Error requesting subscription:", error);
-      alert(error.response?.data?.message || "Failed to send request");
+      toast.error(error.response?.data?.message || "Failed to send request");
     } finally {
       setRequesting(null);
     }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Dashboard.css";
@@ -8,57 +8,72 @@ const Dashboard = ({ user }) => {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const [roleStat, setRoleStat] = useState(0);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  useEffect(() => {
-    fetchQuizzes();
-  }, []);
+  const token = localStorage.getItem("token");
 
-  const fetchQuizzes = async () => {
+  const fetchDashboardData = useCallback(async () => {
+    setLoading(true);
+    setErrorMessage("");
+
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:3000/api/quiz/", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setQuizzes(response.data.quizzes || []);
+      const [quizResponse, roleResponse] = await Promise.all([
+        axios.get("http://localhost:3000/api/quiz/", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        user.role === "Teacher"
+          ? axios.get("http://localhost:3000/api/subscription/requests", {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+          : axios.get("http://localhost:3000/api/subscription/my", {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+      ]);
+
+      setQuizzes(quizResponse.data.quizzes || []);
+      setRoleStat(
+        user.role === "Teacher"
+          ? roleResponse.data.requests?.length || 0
+          : roleResponse.data.subscriptions?.length || 0
+      );
     } catch (error) {
-      console.error("Error fetching quizzes:", error);
+      setErrorMessage(error.response?.data?.message || "Failed to load dashboard data.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, user.role]);
 
-  const hasUserSubmitted = (quiz) => {
-    if (user?.role !== 'Student' || !quiz?.responses) return false;
-    return quiz.responses.some(response =>
-      response?.student?._id === user?.id
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  const stats = useMemo(() => {
+    const open = quizzes.filter((quiz) => quiz.isOpen).length;
+    const closed = quizzes.length - open;
+    const totalQuestions = quizzes.reduce(
+      (sum, quiz) => sum + (quiz.questions?.length || 0),
+      0
     );
-  };
 
-  const getUserScore = (quiz) => {
-    if (user?.role !== 'Student' || !quiz?.responses) return null;
-    const userResponse = quiz.responses.find(response =>
-      response?.student?._id === user?.id
-    );
-    return userResponse?.totalScore || 0;
-  };
+    return { total: quizzes.length, open, closed, totalQuestions };
+  }, [quizzes]);
 
-  const getFilteredQuizzes = () => {
+  const filteredQuizzes = useMemo(() => {
     if (filter === "open") return quizzes.filter((quiz) => quiz.isOpen);
     if (filter === "closed") return quizzes.filter((quiz) => !quiz.isOpen);
     return quizzes;
-  };
+  }, [filter, quizzes]);
 
-  const takeQuiz = (quizId) => {
-    navigate(`/quiz/${quizId}`);
-  };
-
-  const viewResults = (quizId) => {
-    navigate(`/results/${quizId}`);
-  };
+  const totalMarks = (quiz) =>
+    quiz.questions?.reduce((sum, question) => sum + (question.marks || 1), 0) || 0;
 
   const toggleQuizStatus = async (quizId) => {
+    setStatusMessage("");
+    setErrorMessage("");
+
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.patch(
         `http://localhost:3000/api/quiz/${quizId}/toggle-status`,
         {},
@@ -68,51 +83,73 @@ const Dashboard = ({ user }) => {
       );
 
       if (response.data.success) {
-        alert(response.data.message);
-        // Refresh the quizzes list
-        fetchQuizzes();
+        setStatusMessage(response.data.message);
+        fetchDashboardData();
       }
     } catch (error) {
-      console.error("Error toggling quiz status:", error);
-      alert(error.response?.data?.message || "Failed to update quiz status");
+      setErrorMessage(error.response?.data?.message || "Failed to update quiz status.");
     }
   };
 
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="loading-spinner">Loading...</div>
+        <div className="loading-spinner" />
       </div>
     );
   }
 
-  const filteredQuizzes = getFilteredQuizzes();
-
   return (
-    <div className="quizzes-container">
-      <div className="quizzes-header">
+    <div className="dashboard-shell">
+      <div className="dashboard-head">
         <div>
-          <h1>
-            {user.role === "Teacher" ? "My Quizzes" : "Available Quizzes"}
-          </h1>
-          <p style={{ color: "#666", fontSize: "14px", margin: "5px 0 0 0" }}>
+          <p className="eyebrow">{user.role} Workspace</p>
+          <h1>{user.role === "Teacher" ? "Teaching Dashboard" : "Student Dashboard"}</h1>
+          <p className="head-subtitle">
             {user.role === "Teacher"
-              ? "Manage your created quizzes and view student responses"
-              : "Browse and take available quizzes"}
+              ? "Create quizzes, control access, and manage incoming subscription requests."
+              : "Track your quiz feed from approved teachers and attempt open quizzes quickly."}
           </p>
         </div>
-        {user.role === "Teacher" && (
-          <div
-            className="create-quiz-header-btn"
-            onClick={() => navigate("/createquiz")}
-          >
-            Create New Quiz
-          </div>
-        )}
+        <div className="head-actions">
+          {user.role === "Teacher" ? (
+            <>
+              <button className="btn btn-primary" onClick={() => navigate("/createquiz")}>
+                + Create Quiz
+              </button>
+              <button className="btn btn-secondary" onClick={() => navigate("/manage-subscriptions")}>
+                View Requests
+              </button>
+            </>
+          ) : (
+            <button className="btn btn-primary" onClick={() => navigate("/subscribe")}>
+              Discover Teachers
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="quizzes-controls">
-        <div className="filter-buttons">
+      <div className="stat-grid">
+        <div className="stat-card">
+          <span>Total Quizzes</span>
+          <strong>{stats.total}</strong>
+        </div>
+        <div className="stat-card">
+          <span>Open Quizzes</span>
+          <strong>{stats.open}</strong>
+        </div>
+        <div className="stat-card">
+          <span>{user.role === "Teacher" ? "Pending Requests" : "Approved Teachers"}</span>
+          <strong>{roleStat}</strong>
+        </div>
+        <div className="stat-card">
+          <span>Total Questions</span>
+          <strong>{stats.totalQuestions}</strong>
+        </div>
+      </div>
+
+      <div className="toolbar">
+        <div className="filter-group">
           <button
             className={`filter-btn ${filter === "all" ? "active" : ""}`}
             onClick={() => setFilter("all")}
@@ -132,105 +169,83 @@ const Dashboard = ({ user }) => {
             Closed
           </button>
         </div>
+        <button className="btn btn-secondary" onClick={fetchDashboardData}>
+          Refresh
+        </button>
       </div>
 
-      <div className="quizzes-grid">
+      {statusMessage ? <div className="dashboard-message success">{statusMessage}</div> : null}
+      {errorMessage ? <div className="dashboard-message error">{errorMessage}</div> : null}
+
+      <div className="quiz-grid">
         {filteredQuizzes.length === 0 ? (
-          <div className="no-quizzes">
-            <h3>No quizzes found</h3>
+          <div className="empty-state">
+            <h3>No quizzes for this filter.</h3>
             <p>
               {user.role === "Teacher"
-                ? "Create your first quiz to get started!"
-                : "No quizzes available at the moment."}
+                ? "Create a new quiz to start publishing content."
+                : "Subscribe to more teachers to expand your quiz feed."}
             </p>
           </div>
         ) : (
           filteredQuizzes.map((quiz) => (
-            <div key={quiz._id} className="quiz-card">
-              <div className="quiz-card-header">
+            <article className="quiz-card" key={quiz._id}>
+              <div className="quiz-header">
                 <h3>{quiz.title}</h3>
-                <div
-                  className={`status-badge ${quiz.isOpen ? "open" : "closed"}`}
-                >
+                <span className={`status-pill ${quiz.isOpen ? "open" : "closed"}`}>
                   {quiz.isOpen ? "Open" : "Closed"}
-                </div>
+                </span>
               </div>
 
-              <div className="quiz-card-body">
-                <div className="quiz-info">
-                  <p>
-                    <strong>Questions:</strong> {quiz.questions?.length || 0}
-                  </p>
-                  <p>
-                    <strong>Total Marks:</strong>{" "}
-                    {quiz.questions?.reduce((sum, q) => sum + (q.marks || 1), 0) || 0}
-                  </p>
-                  <p>
-                    <strong>Created:</strong>{" "}
-                    {quiz.createdAt ? new Date(quiz.createdAt).toLocaleDateString() : 'N/A'}
-                  </p>
-                  {user.role === "Student" && (
-                    <>
-                      <p>
-                        <strong>Teacher:</strong> {quiz.teacher.name}
-                      </p>
-                      {hasUserSubmitted(quiz) && (
-                        <p>
-                          <strong>Your Score:</strong> {getUserScore(quiz) || 0}/{quiz.questions?.reduce((sum, q) => sum + (q.marks || 1), 0) || 0}
-                        </p>
-                      )}
-                    </>
-                  )}
-
+              <div className="quiz-meta">
+                <div>
+                  <span>Questions</span>
+                  <strong>{quiz.questions?.length || 0}</strong>
                 </div>
-              </div>
-
-              <div className="quiz-card-actions">
+                <div>
+                  <span>Total Marks</span>
+                  <strong>{totalMarks(quiz)}</strong>
+                </div>
+                <div>
+                  <span>Created</span>
+                  <strong>
+                    {quiz.createdAt ? new Date(quiz.createdAt).toLocaleDateString() : "N/A"}
+                  </strong>
+                </div>
                 {user.role === "Student" ? (
-                  hasUserSubmitted(quiz) ? (
-                    <div className="btn btn-success">
-                      ✓ Completed
-                    </div>
-                  ) : quiz.isOpen ? (
-                    <div
-                      className="btn btn-primary"
-                      onClick={() => takeQuiz(quiz._id)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      Take Quiz
-                    </div>
-                  ) : (
-                    <div className="btn btn-disabled">Quiz Closed</div>
-                  )
-                ) : (
+                  <div>
+                    <span>Teacher</span>
+                    <strong>{quiz.teacher?.name || "Unknown"}</strong>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="quiz-actions">
+                {user.role === "Teacher" ? (
                   <>
-                    <div
-                      className="btn btn-outline"
-                      onClick={() => viewResults(quiz._id)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      View Results
-                    </div>
-                    <div
-                      className="btn btn-secondary"
-                      onClick={() => navigate(`/quiz/${quiz._id}`)}
-                      style={{ cursor: "pointer" }}
-                    >
+                    <button className="btn btn-secondary" onClick={() => navigate(`/results/${quiz._id}`)}>
+                      Results
+                    </button>
+                    <button className="btn btn-outline" onClick={() => navigate(`/quiz/${quiz._id}`)}>
                       Preview
-                    </div>
-                    <div
-                      className={`btn ${
-                        quiz.isOpen ? "btn-danger" : "btn-success"
-                      }`}
+                    </button>
+                    <button
+                      className={`btn ${quiz.isOpen ? "btn-danger" : "btn-success"}`}
                       onClick={() => toggleQuizStatus(quiz._id)}
-                      style={{ cursor: "pointer" }}
                     >
                       {quiz.isOpen ? "Close Quiz" : "Open Quiz"}
-                    </div>
+                    </button>
                   </>
+                ) : (
+                  <button
+                    className={`btn ${quiz.isOpen ? "btn-primary" : "btn-secondary"}`}
+                    onClick={() => navigate(`/quiz/${quiz._id}`)}
+                  >
+                    {quiz.isOpen ? "Attempt Quiz" : "View Quiz"}
+                  </button>
                 )}
               </div>
-            </div>
+            </article>
           ))
         )}
       </div>

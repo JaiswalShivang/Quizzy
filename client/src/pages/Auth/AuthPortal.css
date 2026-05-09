@@ -1,0 +1,130 @@
+.auth-portal {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+}
+
+.auth-card {
+  width: min(100%, 460px);
+  padding: 2rem;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(10, 20, 36, 0.9) 0%, rgba(9, 15, 27, 0.94) 100%);
+  border: 1px solid var(--border-soft);
+  box-shadow: 0 24px 55px rgba(0, 0, 0, 0.35);
+}
+
+.auth-header {
+  margin-bottom: 1.5rem;
+}
+
+.auth-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.auth-header h1 {
+  font-size: 1.6rem;
+  margin: 0 0 0.5rem;
+  color: var(--text-primary);
+}
+
+.auth-header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  background: rgba(10, 17, 30, 0.9);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 0.3rem;
+  margin-bottom: 1.4rem;
+}
+
+.auth-tab {
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-tab.active {
+  background: linear-gradient(135deg, #1c9cff 0%, #16e0d4 100%);
+  color: #03121f;
+}
+
+.auth-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.auth-field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.auth-field span {
+  color: var(--text-secondary);
+  font-size: 0.83rem;
+}
+
+.auth-feedback {
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.88rem;
+  border: 1px solid transparent;
+}
+
+.auth-feedback.error {
+  color: #ffbbbb;
+  background: rgba(111, 19, 19, 0.28);
+  border-color: rgba(255, 128, 128, 0.35);
+}
+
+.auth-feedback.success {
+  color: #adf7df;
+  background: rgba(11, 89, 64, 0.28);
+  border-color: rgba(126, 255, 206, 0.35);
+}
+
+.auth-submit-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #1c9cff 0%, #16e0d4 100%);
+  color: #03121f;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-submit-btn:hover:enabled {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(28, 156, 255, 0.25);
+}
+
+.auth-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@media (max-width: 560px) {
+  .auth-card {
+    padding: 1.4rem;
+  }
+}

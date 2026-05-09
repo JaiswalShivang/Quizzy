@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import { toast } from 'react-toastify'
+import api from '../../api'
 import './CreateQuiz.css'
 
 const CreateQuiz = ({ user }) => {
@@ -14,7 +15,7 @@ const CreateQuiz = ({ user }) => {
     }
 
     if (user && user.role && user.role !== 'Teacher') {
-      alert('Only teachers can create quizzes')
+      toast.error('Only teachers can create quizzes')
       navigate('/dashboard')
     }
   }, [user, navigate])
@@ -66,7 +67,7 @@ const CreateQuiz = ({ user }) => {
         marks: 1
       })
     } else {
-      alert('Please fill all question fields and answers')
+      toast.warning('Please fill all question fields and answers')
     }
   }
 
@@ -79,27 +80,22 @@ const CreateQuiz = ({ user }) => {
 
   const createQuiz = async () => {
     if (!quiz.title || quiz.questions.length === 0) {
-      alert('Please provide quiz title and at least one question')
+      toast.warning('Please provide quiz title and at least one question')
       return
     }
 
     try {
       const token = localStorage.getItem('token')
-      await axios.post(
-        'http://localhost:3000/api/quiz/create',
-        quiz,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+      await api.post('/quiz/create', quiz, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         }
-      )
-      alert('Quiz created successfully!')
+      })
+      toast.success('Quiz created successfully!')
       navigate('/dashboard')
     } catch (error) {
       console.error('Error creating quiz:', error)
-      alert(error.response?.data?.message || 'Failed to create quiz')
+      toast.error(error.response?.data?.message || 'Failed to create quiz')
     }
   }
 

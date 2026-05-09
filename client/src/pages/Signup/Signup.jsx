@@ -1,6 +1,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { toast } from "react-toastify";
+import api from "../../api";
 import "./Signup.css";
 import { useNavigate } from "react-router-dom";
 
@@ -28,18 +29,15 @@ const Register = () => {
     const { name, email, password, reEnterPassword, role } = user;
     if (name && email && password && password === reEnterPassword && role) {
       try {
-        const res = await axios.post(
-          "http://localhost:3000/api/auth/signup",
-          { name, email, password, role }
-        );
-        alert(res.data.message);
+        const res = await api.post("/auth/signup", { name, email, password, role });
+        toast.success(res.data.message);
         navigate("/login");
       } catch (err) {
         console.log(err);
-        alert(err.response?.data?.message || "Registration failed");
+        toast.error(err.response?.data?.message || "Registration failed");
       }
     } else {
-      alert("Please fill all fields correctly and ensure passwords match");
+      toast.warning("Please fill all fields correctly and ensure passwords match");
     }
   };
 

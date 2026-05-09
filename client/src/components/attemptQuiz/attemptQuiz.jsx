@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import { toast } from 'react-toastify'
+import api from '../../api'
 import './attemptQuiz.css'
 
 const AttemptQuiz = ({ user }) => {
@@ -13,14 +14,10 @@ const AttemptQuiz = ({ user }) => {
   const [submitting, setSubmitting] = useState(false)
   const [userSubmission, setUserSubmission] = useState(null)
 
-  useEffect(() => {
-    fetchQuiz()
-  }, [id])
-
-  const fetchQuiz = async () => {
+  const fetchQuiz = useCallback(async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.get(`http://localhost:3000/api/quiz/${id}`, {
+      const response = await api.get(`/quiz/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       setQuiz(response.data.quiz)
@@ -28,12 +25,16 @@ const AttemptQuiz = ({ user }) => {
       setAnswers(new Array(response.data.quiz.questions.length).fill(-1))
     } catch (error) {
       console.error('Error fetching quiz:', error)
-      alert('Failed to load quiz')
+      toast.error('Failed to load quiz')
       navigate('/dashboard')
     } finally {
       setLoading(false)
     }
-  }
+  }, [id, navigate])
+
+  useEffect(() => {
+    fetchQuiz()
+  }, [fetchQuiz])
 
   const handleAnswerSelect = (answerIndex) => {
     const newAnswers = [...answers]
@@ -59,7 +60,7 @@ const AttemptQuiz = ({ user }) => {
 
   const submitQuiz = async () => {
     if (user.role !== 'Student') {
-      alert('Only students can submit quiz answers')
+      toast.error('Only students can submit quiz answers')
       return
     }
 
@@ -76,28 +77,23 @@ const AttemptQuiz = ({ user }) => {
       const token = localStorage.getItem('token')
       console.log('Token:', token ? 'Present' : 'Missing')
 
-      const response = await axios.post(
-        `http://localhost:3000/api/quiz/${id}/submit`,
-        { answers: processedAnswers },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+      const response = await api.post(`/quiz/${id}/submit`, { answers: processedAnswers }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         }
-      )
+      })
 
       console.log('Response:', response.data)
-      alert(`Quiz submitted! Your score: ${response.data.data.totalScore}/${response.data.data.maxScore}`)
+      toast.success(`Quiz submitted! Your score: ${response.data.data.totalScore}/${response.data.data.maxScore}`)
       navigate('/dashboard')
     } catch (error) {
 
       if (error.response?.data?.data?.alreadySubmitted) {
-        alert('You have already submitted this quiz!')
+        toast.info('You have already submitted this quiz!')
         // Refresh the page to show the completed state
         window.location.reload()
       } else {
-        alert(error.response?.data?.message || 'Failed to submit quiz')
+        toast.error(error.response?.data?.message || 'Failed to submit quiz')
       }
     } finally {
       setSubmitting(false)

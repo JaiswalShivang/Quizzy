@@ -16,7 +16,7 @@ const Navbar = ({ user, setLoginUser }) => {
       <div className="navbar-container">
         <div
           className="navbar-brand"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/dashboard')}
           style={{ cursor: 'pointer' }}
         >
           Quizzy
@@ -37,7 +37,7 @@ const Navbar = ({ user, setLoginUser }) => {
               onClick={() => navigate('/subscribe')}
               style={{ cursor: 'pointer' }}
             >
-              Subscribe
+              Subscriptions
             </div>
           )}
 
@@ -47,7 +47,7 @@ const Navbar = ({ user, setLoginUser }) => {
               onClick={() => navigate('/manage-subscriptions')}
               style={{ cursor: 'pointer' }}
             >
-              Manage Subscriptions
+              Requests
             </div>
           )}
 

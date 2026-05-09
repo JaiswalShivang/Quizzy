@@ -1,131 +1,141 @@
 .create-quiz-container {
   max-width: 900px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 1.5rem;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
+  margin-bottom: 2rem;
+  background: linear-gradient(180deg, rgba(14, 26, 43, 0.9) 0%, rgba(10, 17, 31, 0.95) 100%);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-lg);
 }
 
 .header h1 {
   margin: 0;
-  color: #333;
-  font-size: 1.8rem;
+  color: var(--text-primary);
+  font-size: 1.5rem;
 }
 
 .back-btn {
-  background: #6c757d;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
+  background: var(--surface-soft);
+  color: var(--text-primary);
+  border: 1px solid var(--border-soft);
+  padding: 0.7rem 1.2rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.85rem;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 1.5rem;
 }
 
 .section {
-  background: white;
-  padding: 25px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
+  background: linear-gradient(180deg, rgba(14, 26, 43, 0.9) 0%, rgba(10, 17, 31, 0.95) 100%);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-lg);
 }
 
 .section h2 {
-  margin: 0 0 20px 0;
-  color: #333;
-  font-size: 1.4rem;
-  border-bottom: 2px solid #f0f0f0;
-  padding-bottom: 10px;
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  border-bottom: 1px solid var(--border-soft);
+  padding-bottom: 0.75rem;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #333;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
 }
 
 .input,
 .textarea {
   width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
+  padding: 0.75rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  font-size: 0.9rem;
   font-family: inherit;
+  background: rgba(10, 18, 31, 0.95);
+  color: var(--text-primary);
 }
 
 .input:focus,
 .textarea:focus {
   outline: none;
-  border-color: #1877f2;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(28, 156, 255, 0.18);
 }
 
 .checkbox-label {
   display: flex;
   align-items: center;
   cursor: pointer;
+  color: var(--text-secondary);
 }
 
 .checkbox-label input[type="checkbox"] {
-  margin-right: 10px;
+  margin-right: 0.6rem;
 }
 
 .checkbox-label span {
-  color: #333;
+  font-size: 0.9rem;
 }
 
 .quiz-basic-info {
-  margin-bottom: 40px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #eee;
+  margin-bottom: 2rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #333;
-  font-size: 14px;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
 }
 
 .form-input,
 .form-textarea {
   width: 100%;
-  padding: 12px;
-  border: 2px solid #dddfe2;
+  padding: 0.75rem;
+  border: 1px solid var(--border-soft);
   border-radius: 8px;
-  font-size: 14px;
-  transition: border-color 0.3s ease;
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease;
   font-family: inherit;
+  background: rgba(10, 18, 31, 0.95);
+  color: var(--text-primary);
 }
 
 .form-input:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: #1877f2;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(28, 156, 255, 0.18);
 }
 
 .form-textarea {
@@ -137,99 +147,101 @@
   display: flex;
   align-items: center;
   cursor: pointer;
-  font-size: 14px;
-  color: #333;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
 }
 
 .checkbox-label input[type="checkbox"] {
-  margin-right: 10px;
+  margin-right: 0.6rem;
   transform: scale(1.2);
 }
 
 .questions-section {
-  margin-bottom: 30px;
+  margin-bottom: 2rem;
 }
 
 .questions-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 1.2rem;
 }
 
 .questions-header h2 {
-  color: #333;
+  color: var(--text-primary);
   margin: 0;
-  font-size: 1.6rem;
+  font-size: 1.3rem;
 }
 
 .question-form {
-  background: #f8f9fa;
-  padding: 25px;
+  background: rgba(14, 26, 43, 0.8);
+  padding: 1.5rem;
   border-radius: 10px;
-  margin-bottom: 20px;
-  border: 2px solid #e9ecef;
-  transition: border-color 0.3s ease;
+  margin-bottom: 1.2rem;
+  border: 1px solid var(--border-soft);
+  transition: border-color 0.2s ease;
 }
 
 .question-form:hover {
-  border-color: #1877f2;
+  border-color: var(--accent);
 }
 
 .question-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 0.75rem;
 }
 
 .question-header h3 {
-  color: #333;
+  color: var(--text-primary);
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1rem;
 }
 
 .marks-input {
   width: 80px;
-  padding: 8px;
-  border: 2px solid #dddfe2;
+  padding: 0.6rem;
+  border: 1px solid var(--border-soft);
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 0.9rem;
+  background: rgba(10, 18, 31, 0.95);
+  color: var(--text-primary);
 }
 
 .answers-section {
-  margin-top: 20px;
+  margin-top: 1.2rem;
 }
 
 .answers-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
 }
 
 .answers-header label {
-  font-weight: 500;
-  color: #333;
-  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
 }
 
 .radio-text {
-  font-size: 12px;
-  color: #666;
+  font-size: 0.75rem;
+  color: var(--text-muted);
   font-style: italic;
 }
 
 .answer-option {
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
 }
 
 .answer-input-group {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
@@ -242,19 +254,19 @@
   display: flex;
   align-items: center;
   cursor: pointer;
-  font-size: 14px;
-  color: #333;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 
 .radio-label input[type="radio"] {
-  margin-right: 8px;
+  margin-right: 0.6rem;
   transform: scale(1.2);
 }
 
 .form-row {
   display: flex;
-  gap: 20px;
+  gap: 1.2rem;
   align-items: flex-end;
 }
 
@@ -264,118 +276,115 @@
 
 .marks-input {
   width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
+  padding: 0.6rem;
+  border: 1px solid var(--border-soft);
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 0.9rem;
+  background: rgba(10, 18, 31, 0.95);
+  color: var(--text-primary);
 }
 
 .add-question-form {
-  background: #f8f9fa;
-  padding: 25px;
+  background: rgba(14, 26, 43, 0.8);
+  padding: 1.5rem;
   border-radius: 8px;
-  border: 1px solid #e9ecef;
-  margin-top: 20px;
+  border: 1px solid var(--border-soft);
+  margin-top: 1.2rem;
 }
 
 .add-question-form h3 {
-  margin: 0 0 20px 0;
-  color: #333;
-  font-size: 1.2rem;
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+  font-size: 1rem;
 }
 
 .answer-options {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .answer-option {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: white;
-  border: 1px solid #ddd;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(10, 18, 31, 0.95);
+  border: 1px solid var(--border-soft);
   border-radius: 6px;
 }
 
 .option-label {
-  font-weight: 600;
+  font-weight: 700;
   min-width: 25px;
-  color: #333;
+  color: var(--text-secondary);
 }
 
 .option-input {
   flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
+  padding: 0.6rem;
+  border: 1px solid var(--border-soft);
   border-radius: 4px;
-  font-size: 14px;
-}
-
-.radio-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  white-space: nowrap;
+  font-size: 0.9rem;
+  background: rgba(10, 18, 31, 0.95);
+  color: var(--text-primary);
 }
 
 .add-question-btn {
-  background: #28a745;
-  color: white;
+  background: var(--gradient-primary);
+  color: #041523;
   border: none;
-  padding: 12px 24px;
+  padding: 0.75rem 1.5rem;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  margin-top: 15px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-top: 1rem;
 }
 
 .form-actions {
   text-align: center;
-  margin-top: 20px;
+  margin-top: 1.5rem;
 }
 
 .create-quiz-btn {
-  background: #1877f2;
-  color: white;
+  background: var(--gradient-primary);
+  color: #041523;
   border: none;
-  padding: 15px 30px;
-  border-radius: 6px;
+  padding: 0.9rem 2rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 700;
   min-width: 200px;
 }
 
 .create-quiz-btn:disabled {
-  background: #ccc;
+  background: var(--surface-soft);
+  color: var(--text-muted);
   cursor: not-allowed;
 }
 
 .empty-state {
   text-align: center;
-  padding: 40px 20px;
-  color: #666;
-  background: #f8f9fa;
+  padding: 2.5rem 1.2rem;
+  color: var(--text-secondary);
+  background: rgba(14, 26, 43, 0.7);
   border-radius: 8px;
-  border: 2px dashed #ddd;
-  margin-bottom: 20px;
+  border: 1px dashed var(--border-soft);
+  margin-bottom: 1.2rem;
 }
 
 .empty-state p {
   margin: 0;
-  font-size: 16px;
+  font-size: 0.9rem;
 }
 
 .question-card {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
+  background: rgba(14, 26, 43, 0.8);
+  border: 1px solid var(--border-soft);
   border-radius: 8px;
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
   overflow: hidden;
 }
 
@@ -383,78 +392,80 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  background: white;
-  border-bottom: 1px solid #e9ecef;
+  padding: 1rem 1.2rem;
+  background: rgba(12, 20, 34, 0.9);
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .question-info {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 1rem;
 }
 
 .question-info h3 {
   margin: 0;
-  color: #333;
-  font-size: 1.1rem;
+  color: var(--text-primary);
+  font-size: 0.95rem;
 }
 
 .marks-badge {
-  background: #e3f2fd;
-  color: #1976d2;
-  padding: 4px 8px;
+  background: rgba(28, 156, 255, 0.2);
+  color: var(--accent);
+  padding: 0.3rem 0.6rem;
   border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .remove-btn {
-  background: #dc3545;
+  background: linear-gradient(135deg, #ff6b7d 0%, #ff8263 100%);
   color: white;
   border: none;
-  padding: 6px 10px;
+  padding: 0.4rem 0.7rem;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.8rem;
 }
 
 .question-content {
-  padding: 20px;
+  padding: 1.2rem;
 }
 
 .question-text {
-  margin: 0 0 15px 0;
-  font-weight: 500;
-  color: #333;
-  font-size: 16px;
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.95rem;
 }
 
 .answers-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .answer-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 15px;
-  background: white;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  background: rgba(10, 18, 31, 0.95);
   border-radius: 6px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-soft);
+  color: var(--text-secondary);
 }
 
 .answer-item.correct {
-  background: #d4edda;
-  border-color: #c3e6cb;
-  color: #155724;
+  background: rgba(45, 212, 191, 0.15);
+  border-color: rgba(45, 212, 191, 0.4);
+  color: #7ff8e7;
 }
 
 .answer-label {
-  font-weight: 600;
+  font-weight: 700;
   min-width: 20px;
+  color: var(--text-muted);
 }
 
 .answer-text {
@@ -462,31 +473,31 @@
 }
 
 .correct-mark {
-  color: #28a745;
-  font-weight: bold;
-  font-size: 16px;
+  color: var(--success);
+  font-weight: 700;
+  font-size: 1rem;
 }
 
 @media (max-width: 768px) {
   .create-quiz-container {
-    padding: 15px;
+    padding: 1rem;
   }
 
   .header {
     flex-direction: column;
-    gap: 15px;
+    gap: 1rem;
     text-align: center;
   }
 
   .form-row {
     flex-direction: column;
-    gap: 15px;
+    gap: 1rem;
   }
 
   .answer-option {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: 0.6rem;
   }
 
   .question-header {

@@ -6,16 +6,17 @@ import {
 } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Navbar from "./components/Navbar/Navbar";
-import Home from "./pages/Home/Home";
-import Login from "./pages/Login/Login";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import CreateQuiz from "./components/CreateQuiz/CreateQuiz";
-import Signup from "./pages/Signup/Signup";
 import AttemptQuiz from "./components/attemptQuiz/attemptQuiz";
 import Result from "./components/result/result";
 import SubscribeTeachers from "./pages/SubscribeTeachers/SubscribeTeachers";
 import ManageSubscriptions from "./pages/ManageSubscriptions/ManageSubscriptions";
+import Login from "./pages/Login/Login";
+import Signup from "./pages/Signup/Signup";
 
 
 function App() {
@@ -25,26 +26,33 @@ function App() {
     email: "",
     role: "",
   });
+
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
-      console.log("jwt token: ", token);
-      const User = jwtDecode(token);
-      if (!User) {
+    if (!token) {
+      return;
+    }
+
+    try {
+      const decodedUser = jwtDecode(token);
+      if (!decodedUser) {
         localStorage.removeItem("token");
         setLoginUser({});
-      } else {
-        setLoginUser({
-          id: User.id,
-          name: User.name,
-          email: User.email,
-          role: User.role,
-        });
-        console.log("User from jwt: ", User);
-        console.log("user of useState", user);
+        return;
       }
+
+      setLoginUser({
+        id: decodedUser.id,
+        name: decodedUser.name,
+        email: decodedUser.email,
+        role: decodedUser.role,
+      });
+    } catch {
+      localStorage.removeItem("token");
+      setLoginUser({});
     }
   }, []);
+
   return (
     <div>
       <Router>
@@ -54,24 +62,44 @@ function App() {
         <div className="App">
           <Routes>
             <Route
-              exact
               path="/"
               element={
                 user && user.id ? (
-                  <Home user={user} setLoginUser={setLoginUser} />
+                  <Navigate to="/dashboard" replace />
                 ) : (
-                  <Login user={user} setLoginUser={setLoginUser} />
+                  <Login setLoginUser={setLoginUser} />
                 )
               }
             />
             <Route
               path="/login"
-              element={<Login user={user} setLoginUser={setLoginUser} />}
+              element={
+                user && user.id ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <Login setLoginUser={setLoginUser} />
+                )
+              }
             />
-            <Route path="/register" element={<Signup />} />
+            <Route
+              path="/register"
+              element={
+                user && user.id ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <Signup />
+                )
+              }
+            />
             <Route
               path="/dashboard"
-              element={<Dashboard user={user} setLoginUser={setLoginUser} />}
+              element={
+                user && user.id ? (
+                  <Dashboard user={user} />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
             />
             <Route
               path="/createquiz"
@@ -97,7 +125,7 @@ function App() {
               path="/manage-subscriptions"
               element={
                 user && user.role === 'Teacher' ? (
-                  <ManageSubscriptions user={user} />
+                  <ManageSubscriptions />
                 ) : (
                   <Navigate to="/dashboard" replace />
                 )
@@ -108,6 +136,26 @@ function App() {
           </Routes>
         </div>
       </Router>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+        toastStyle={{
+          background: 'rgba(22, 33, 62, 0.95)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(42, 42, 78, 0.5)',
+          borderRadius: '12px',
+          color: '#ffffff',
+          fontFamily: 'Inter, sans-serif',
+        }}
+      />
     </div>
   );
 }
