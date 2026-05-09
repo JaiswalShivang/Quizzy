@@ -14,6 +14,8 @@ import CreateQuiz from "./components/CreateQuiz/CreateQuiz";
 import Signup from "./pages/Signup/Signup";
 import AttemptQuiz from "./components/attemptQuiz/attemptQuiz";
 import Result from "./components/result/result";
+import SubscribeTeachers from "./pages/SubscribeTeachers/SubscribeTeachers";
+import ManageSubscriptions from "./pages/ManageSubscriptions/ManageSubscriptions";
 
 
 function App() {
@@ -76,6 +78,26 @@ function App() {
               element={
                 user && user.role === 'Teacher' ? (
                   <CreateQuiz user={user} />
+                ) : (
+                  <Navigate to="/dashboard" replace />
+                )
+              }
+            />
+            <Route
+              path="/subscribe"
+              element={
+                user && user.role === 'Student' ? (
+                  <SubscribeTeachers user={user} />
+                ) : (
+                  <Navigate to="/dashboard" replace />
+                )
+              }
+            />
+            <Route
+              path="/manage-subscriptions"
+              element={
+                user && user.role === 'Teacher' ? (
+                  <ManageSubscriptions user={user} />
                 ) : (
                   <Navigate to="/dashboard" replace />
                 )

@@ -1,5 +1,6 @@
 const Quiz = require("../models/Quiz");
 const User = require("../models/User");
+const Subscription = require("../models/Subscription");
 const mongoose = require("mongoose");
 
 exports.createQuiz = async (req, res) => {
@@ -41,7 +42,39 @@ exports.createQuiz = async (req, res) => {
 
 exports.getAllQuiz = async (req, res) => {
   try {
-    const quizzes = await Quiz.find()
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    let query = {};
+
+    if (user.role === "Teacher") {
+      query.teacher = userId;
+    } else if (user.role === "Student") {
+      // Get approved subscriptions
+      const subscriptions = await Subscription.find({
+        student: userId,
+        status: "approved",
+      });
+      const teacherIds = subscriptions.map(sub => sub.teacher);
+      if (teacherIds.length > 0) {
+        query.teacher = { $in: teacherIds };
+      } else {
+        // If no approved subscriptions, return empty array
+        return res.status(200).json({
+          success: true,
+          quizzes: [],
+        });
+      }
+    }
+
+    const quizzes = await Quiz.find(query)
       .populate("teacher", "name email")
       .select("-responses");
 
