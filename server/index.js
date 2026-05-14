@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const connectProducer = require("./services/producer").connectProducer;
 require("dotenv").config();
 
 const app = express();
@@ -21,6 +22,11 @@ app.use("/api/quiz", quizRoutes);
 app.use("/api/subscription", subscriptionRoutes);
 
 const PORT = 3000;
+
+connectProducer().catch((err) => {
+  console.error("Failed to connect Kafka Producer:", err);
+  process.exit(1);
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
