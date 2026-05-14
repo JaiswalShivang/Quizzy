@@ -2,6 +2,7 @@ const Quiz = require("../models/Quiz");
 const User = require("../models/User");
 const Subscription = require("../models/Subscription");
 const mongoose = require("mongoose");
+const { publishSubmission } = require("../services/producer");
 
 exports.createQuiz = async (req, res) => {
   try {
@@ -169,35 +170,12 @@ exports.submitQuiz = async (req, res) => {
       });
     }
 
-    let score = 0;
-    let totalMarks = 0;
+    await publishSubmission(studentId, quizId, answers);
 
-    for (let i = 0; i < quiz.questions.length; i++) {
-      const question = quiz.questions[i];
-      const studentAnswer = answers[i];
-
-      const questionMarks = typeof question.marks === 'number' && !isNaN(question.marks) ? question.marks : 1;
-
-      totalMarks += questionMarks;
-
-      if (studentAnswer !== -1 && studentAnswer === question.correctIndex) {
-        score += questionMarks;
-      }
-    }
-    quiz.responses.push({
-      student: studentId,
-      answers,
-      totalScore: score,
+    return res.status(202).json({
+      message: "Submission received successfully! Your score is being calculated."
     });
-
-    await quiz.save();
-    console.log("Quiz saved successfully");
-
-    return res.status(200).json({
-      success: true,
-      message: "Quiz submitted successfully",
-      data: { totalScore: score, maxScore: totalMarks },
-    });
+    
   } catch (error) {
     return res.status(500).json({
       success: false,
