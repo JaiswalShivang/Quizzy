@@ -139,6 +139,7 @@ exports.submitQuiz = async (req, res) => {
     const quizId = req.params.id;
     const studentId = req.user.id;
     const { answers = [] } = req.body;
+
     const quiz = await Quiz.findById(quizId);
 
     if (!quiz) {
@@ -147,6 +148,7 @@ exports.submitQuiz = async (req, res) => {
         message: "Quiz not found",
       });
     }
+
     if (!quiz.isOpen) {
       return res.status(403).json({
         success: false,
@@ -175,7 +177,7 @@ exports.submitQuiz = async (req, res) => {
     return res.status(202).json({
       message: "Submission received successfully! Your score is being calculated."
     });
-    
+
   } catch (error) {
     return res.status(500).json({
       success: false,

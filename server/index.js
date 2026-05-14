@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const connectProducer = require("./services/producer").connectProducer;
+const { startWorker, stopWorker } = require("./worker/gradingWorker");
 require("dotenv").config();
 
 const app = express();
@@ -28,6 +29,24 @@ connectProducer().catch((err) => {
   process.exit(1);
 });
 
+startWorker().catch((err) => {
+  console.error("Failed to start grading worker:", err);
+  process.exit(1);
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received, shutting down gracefully...');
+  await stopWorker();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('SIGINT received, shutting down gracefully...');
+  await stopWorker();
+  process.exit(0);
 });
