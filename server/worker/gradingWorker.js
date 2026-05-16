@@ -1,92 +1,129 @@
 const mongoose = require("mongoose");
 const kafka = require("../config/kafka");
 const Quiz = require("../models/Quiz");
+const { clearPending } = require("../services/producer");
 
-const consumer = kafka.consumer({ groupId: "grading-workers" });
+const consumer = kafka.consumer({
+    groupId: "grading-workers",
+    sessionTimeout: 30000,
+    heartbeatInterval: 3000,
+});
 
-const gradeSubmission = async (studentId, quizId, answers) => {
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const gradeSubmission = async (studentId, quizId, answers, attempt = 1) => {
     try {
         const quiz = await Quiz.findById(quizId);
         if (!quiz) {
-            console.error(`Quiz not found: ${quizId}`);
-            return;
+            console.error(`[Worker] Quiz not found: ${quizId}`);
+            return true;
         }
 
-        let totalScore = 0;
-
-        quiz.questions.forEach((question, index) => {
-            const studentAnswer = answers[index];
-            if (studentAnswer !== undefined && studentAnswer === question.correctIndex) {
-                totalScore += question.marks || 1; 
-            }
-        });
-
         const existingResponseIndex = quiz.responses.findIndex(
-            response => response.student.toString() === studentId.toString()
+            (response) => response.student.toString() === studentId.toString()
         );
 
         if (existingResponseIndex >= 0) {
-            console.log(`Student ${studentId} already graded for quiz ${quizId}. Skipping.`);
-            return;
+            console.log(`[Worker] Student ${studentId} already graded for quiz ${quizId}. Skipping.`);
+            clearPending(studentId, quizId);
+            return true;
         }
+
+        let totalScore = 0;
+        quiz.questions.forEach((question, index) => {
+            const studentAnswer = answers[index];
+            if (studentAnswer !== undefined && studentAnswer === question.correctIndex) {
+                totalScore += question.marks || 1;
+            }
+        });
 
         quiz.responses.push({
             student: studentId,
             answers: answers,
             totalScore: totalScore,
-            submittedAt: new Date()
+            submittedAt: new Date(),
         });
 
         await quiz.save();
-        console.log(`Graded submission for student ${studentId} on quiz ${quizId}. Score: ${totalScore}`);
 
+        clearPending(studentId, quizId);
+
+        console.log(
+            `[Worker] Graded: student=${studentId} quiz=${quizId} score=${totalScore}/${quiz.questions.reduce((s, q) => s + (q.marks || 1), 0)}`
+        );
+        return true; // success
     } catch (error) {
-        console.error("Error grading submission:", error);
+        console.error(`[Worker] Error grading (attempt ${attempt}/${MAX_RETRIES}):`, error.message);
+        if (attempt < MAX_RETRIES) {
+            await sleep(RETRY_DELAY_MS * attempt); // exponential backoff
+            return gradeSubmission(studentId, quizId, answers, attempt + 1);
+        }
+        // All retries exhausted — log and return false (do NOT commit offset)
+        console.error(`[Worker] FAILED after ${MAX_RETRIES} attempts. studentId=${studentId} quizId=${quizId}`);
+        clearPending(studentId, quizId);
+        return false;
     }
 };
 
 const startWorker = async () => {
     try {
         await consumer.connect();
-        console.log("Grading worker connected to Kafka");
+        console.log("[Worker] Grading worker connected to Kafka");
 
         await consumer.subscribe({ topic: "quiz-submissions", fromBeginning: false });
 
         await consumer.run({
-            eachMessage: async ({ topic, partition, message }) => {
+            autoCommit: false,
+            eachMessage: async ({ topic, partition, message, heartbeat, commitOffsets }) => {
+                let success = false;
                 try {
-                    const submission = JSON.parse(message.value.toString());
-
+                    const raw = message.value.toString();
+                    const submission = JSON.parse(raw);
                     const { studentId, quizId, answers } = submission;
 
                     if (!studentId || !quizId || !answers) {
-                        console.error("Invalid submission message:", submission);
-                        return;
+                        console.error("[Worker] Invalid submission message, skipping:", submission);
+                        success = true;
+                    } else {
+                        success = await gradeSubmission(studentId, quizId, answers);
                     }
-
-                    await gradeSubmission(studentId, quizId, answers);
-
                 } catch (error) {
-                    console.error("Error processing message:", error);
+                    console.error("[Worker] Uncaught error processing message:", error);
+                    success = false;
                 }
+
+                if (success) {
+                    await consumer.commitOffsets([
+                        {
+                            topic,
+                            partition,
+                            offset: (BigInt(message.offset) + 1n).toString(),
+                        },
+                    ]);
+                }
+
+                await heartbeat();
             },
         });
-
     } catch (error) {
-        console.error("Error starting grading worker:", error);
+        console.error("[Worker] Error starting grading worker:", error);
+        throw error;
     }
 };
 
 const stopWorker = async () => {
     try {
         await consumer.disconnect();
-        console.log("Grading worker disconnected");
+        console.log("[Worker] Grading worker disconnected");
     } catch (error) {
-        console.error("Error stopping grading worker:", error);
+        console.error("[Worker] Error stopping grading worker:", error);
     }
 };
 
 module.exports = {
     startWorker,
-    stopWorker
+    stopWorker,
 };

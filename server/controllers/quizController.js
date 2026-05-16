@@ -2,7 +2,7 @@ const Quiz = require("../models/Quiz");
 const User = require("../models/User");
 const Subscription = require("../models/Subscription");
 const mongoose = require("mongoose");
-const { publishSubmission } = require("../services/producer");
+const { publishSubmission, isPending, markPending } = require("../services/producer");
 
 exports.createQuiz = async (req, res) => {
   try {
@@ -140,6 +140,13 @@ exports.submitQuiz = async (req, res) => {
     const studentId = req.user.id;
     const { answers = [] } = req.body;
 
+    if (isPending(studentId, quizId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Your submission is already being processed. Please wait.",
+      });
+    }
+
     const quiz = await Quiz.findById(quizId);
 
     if (!quiz) {
@@ -156,7 +163,7 @@ exports.submitQuiz = async (req, res) => {
       });
     }
 
-    const existingSubmission = quiz.responses.find(response =>
+    const existingSubmission = quiz.responses.find((response) =>
       response.student.toString() === studentId.toString()
     );
 
@@ -167,17 +174,20 @@ exports.submitQuiz = async (req, res) => {
         data: {
           alreadySubmitted: true,
           score: existingSubmission.totalScore,
-          submittedAt: existingSubmission.submittedAt
-        }
+          submittedAt: existingSubmission.submittedAt,
+        },
       });
     }
+
+    markPending(studentId, quizId);
 
     await publishSubmission(studentId, quizId, answers);
 
     return res.status(202).json({
-      message: "Submission received successfully! Your score is being calculated."
+      success: true,
+      message: "Submission received! Your score is being calculated and will be available shortly.",
+      data: { processing: true },
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,

@@ -3,6 +3,20 @@ const kafka = require("../config/kafka");
 const producer = kafka.producer();
 const admin = kafka.admin();
 
+const pendingSubmissions = new Set();
+
+const isPending = (studentId, quizId) => {
+    return pendingSubmissions.has(`${studentId}:${quizId}`);
+};
+
+const markPending = (studentId, quizId) => {
+    pendingSubmissions.add(`${studentId}:${quizId}`);
+};
+
+const clearPending = (studentId, quizId) => {
+    pendingSubmissions.delete(`${studentId}:${quizId}`);
+};
+
 const connectProducer = async () => {
     await producer.connect();
     console.log("Kafka Producer connected");
@@ -13,7 +27,7 @@ const connectProducer = async () => {
         await admin.createTopics({
             topics: [{
                 topic: 'quiz-submissions',
-                numPartitions: 1,
+                numPartitions: 3,
                 replicationFactor: 1
             }],
             waitForLeaders: true
@@ -28,7 +42,7 @@ const connectProducer = async () => {
     }
 };
 
-const publishSubmission = async (studentId , quizId, answers) => {
+const publishSubmission = async (studentId, quizId, answers) => {
     const payload = JSON.stringify({
         studentId,
         quizId,
@@ -39,12 +53,28 @@ const publishSubmission = async (studentId , quizId, answers) => {
     await producer.send({
         topic: "quiz-submissions",
         messages: [
-            { value: payload }
+            {
+                key: studentId.toString(),
+                value: payload
+            }
         ]
     });
-}
+};
+
+const disconnectProducer = async () => {
+    try {
+        await producer.disconnect();
+        console.log("Kafka Producer disconnected");
+    } catch (error) {
+        console.error("Error disconnecting Kafka Producer:", error);
+    }
+};
 
 module.exports = {
     connectProducer,
-    publishSubmission
-}
+    publishSubmission,
+    disconnectProducer,
+    isPending,
+    markPending,
+    clearPending,
+};
