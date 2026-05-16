@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Subscription = require("../models/Subscription");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -118,7 +119,30 @@ exports.login = async (req, res) => {
 
 exports.getTeachers = async (req, res) => {
   try {
-    const teachers = await User.find({ role: "Teacher" }, "name email");
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    let teachers;
+
+    if (user.role === "Teacher") {
+      // Teachers can see all other teachers
+      teachers = await User.find({
+        role: "Teacher",
+        _id: { $ne: userId } // Exclude themselves
+      }, "name email");
+    } else if (user.role === "Student") {
+      // Students can see all teachers - frontend will handle subscription status
+      teachers = await User.find({
+        role: "Teacher"
+      }, "name email");
+    }
 
     return res.status(200).json({
       success: true,

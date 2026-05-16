@@ -134,8 +134,7 @@ exports.getMySubscriptions = async (req, res) => {
 
     const subscriptions = await Subscription.find({
       student: req.user.id,
-      status: "approved",
-    }).populate("teacher", "name email");
+    }).populate("teacher", "name email").sort({ createdAt: -1 }); // Show newest first
 
     return res.status(200).json({
       success: true,

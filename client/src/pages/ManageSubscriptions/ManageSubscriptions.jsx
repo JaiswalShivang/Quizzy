@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import api from "../../api";
 import "./ManageSubscriptions.css";
+import axios from "axios";
 
 const ManageSubscriptions = () => {
   const [requests, setRequests] = useState([]);

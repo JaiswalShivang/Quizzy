@@ -110,7 +110,6 @@
 }
 
 .subscribed {
-  background: linear-gradient(135deg, #00d4aa 0%, #00b894 100%);
   color: white;
   box-shadow: 0 4px 15px rgba(0, 212, 170, 0.3);
 }
