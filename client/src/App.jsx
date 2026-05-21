@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "./App.css";
 import Navbar from "./components/Navbar/Navbar";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import CreateQuiz from "./components/CreateQuiz/CreateQuiz";
@@ -59,7 +60,7 @@ function App() {
         {user && user.id ? (
           <Navbar user={user} setLoginUser={setLoginUser} />
         ) : null}
-        <div className="App">
+        <div className="App" style={{ paddingTop: '1.5rem' }}>
           <Routes>
             <Route
               path="/"
@@ -138,22 +139,21 @@ function App() {
       </Router>
       <ToastContainer
         position="top-right"
-        autoClose={3000}
+        autoClose={3500}
         hideProgressBar={false}
         newestOnTop
         closeOnClick
-        rtl={false}
         pauseOnFocusLoss
         draggable
         pauseOnHover
         theme="dark"
         toastStyle={{
-          background: 'rgba(22, 33, 62, 0.95)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(42, 42, 78, 0.5)',
+          background: '#1c2130',
+          border: '1px solid rgba(255,255,255,0.1)',
           borderRadius: '12px',
-          color: '#ffffff',
+          color: '#f1f5f9',
           fontFamily: 'Inter, sans-serif',
+          fontSize: '0.9rem',
         }}
       />
     </div>

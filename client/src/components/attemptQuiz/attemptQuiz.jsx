@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import api from '../../api'
@@ -13,6 +13,9 @@ const AttemptQuiz = ({ user }) => {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [userSubmission, setUserSubmission] = useState(null)
+  // processing = submitted via Kafka but score not yet saved
+  const [processing, setProcessing] = useState(false)
+  const pollRef = useRef(null)
 
   const fetchQuiz = useCallback(async () => {
     try {
@@ -24,7 +27,7 @@ const AttemptQuiz = ({ user }) => {
       setUserSubmission(response.data.userSubmission)
       setAnswers(new Array(response.data.quiz.questions.length).fill(-1))
     } catch (error) {
-      console.error('Error fetching quiz:', error)
+      console.log(error)
       toast.error('Failed to load quiz')
       navigate('/dashboard')
     } finally {
@@ -32,30 +35,42 @@ const AttemptQuiz = ({ user }) => {
     }
   }, [id, navigate])
 
-  useEffect(() => {
-    fetchQuiz()
-  }, [fetchQuiz])
+  useEffect(() => { fetchQuiz() }, [fetchQuiz])
 
-  const handleAnswerSelect = (answerIndex) => {
-    const newAnswers = [...answers]
-    newAnswers[currentQuestion] = answerIndex
-    setAnswers(newAnswers)
-  }
+  // Poll for result after async submission
+  const startPolling = useCallback(() => {
+    let attempts = 0
+    const MAX_ATTEMPTS = 15 // 15 × 2s = 30s max
+    pollRef.current = setInterval(async () => {
+      attempts++
+      try {
+        const token = localStorage.getItem('token')
+        const res = await api.get(`/quiz/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const sub = res.data.userSubmission
+        if (sub && sub.hasSubmitted) {
+          clearInterval(pollRef.current)
+          setProcessing(false)
+          setUserSubmission(sub)
+          toast.success(`Score ready: ${sub.totalScore}/${sub.maxScore}`)
+        }
+      } catch { /* ignore */ }
+      if (attempts >= MAX_ATTEMPTS) {
+        clearInterval(pollRef.current)
+        setProcessing(false)
+        toast.info('Score is still processing. Check back on the dashboard.')
+        navigate('/dashboard')
+      }
+    }, 2000)
+  }, [id, navigate])
 
-  const goToQuestion = (questionIndex) => {
-    setCurrentQuestion(questionIndex)
-  }
+  useEffect(() => () => clearInterval(pollRef.current), [])
 
-  const nextQuestion = () => {
-    if (currentQuestion < quiz.questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1)
-    }
-  }
-
-  const prevQuestion = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1)
-    }
+  const handleAnswerSelect = (idx) => {
+    const a = [...answers]
+    a[currentQuestion] = idx
+    setAnswers(a)
   }
 
   const submitQuiz = async () => {
@@ -63,35 +78,27 @@ const AttemptQuiz = ({ user }) => {
       toast.error('Only students can submit quiz answers')
       return
     }
-
     if (answers.includes(-1)) {
-      if (!window.confirm('You have unanswered questions. Are you sure you want to submit?')) {
-        return
-      }
+      if (!window.confirm('You have unanswered questions. Submit anyway?')) return
     }
-
-    const processedAnswers = answers
-
     setSubmitting(true)
     try {
       const token = localStorage.getItem('token')
-      console.log('Token:', token ? 'Present' : 'Missing')
-
-      const response = await api.post(`/quiz/${id}/submit`, { answers: processedAnswers }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        }
+      const response = await api.post(`/quiz/${id}/submit`, { answers }, {
+        headers: { Authorization: `Bearer ${token}` }
       })
-
-      console.log('Response:', response.data)
-      toast.success(`Quiz submitted! Your score: ${response.data.data.totalScore}/${response.data.data.maxScore}`)
-      navigate('/dashboard')
+      // 202 Accepted — Kafka received it, worker will grade it
+      if (response.status === 202) {
+        setProcessing(true)
+        toast.info('Submission received! Calculating your score…')
+        startPolling()
+      }
     } catch (error) {
-
       if (error.response?.data?.data?.alreadySubmitted) {
         toast.info('You have already submitted this quiz!')
-        // Refresh the page to show the completed state
-        window.location.reload()
+        fetchQuiz()
+      } else if (error.response?.status === 400 && error.response?.data?.message?.includes('being processed')) {
+        toast.warning('Your submission is already being processed. Please wait.')
       } else {
         toast.error(error.response?.data?.message || 'Failed to submit quiz')
       }
@@ -103,7 +110,7 @@ const AttemptQuiz = ({ user }) => {
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="loading-spinner">Loading quiz...</div>
+        <div className="loading-spinner" />
       </div>
     )
   }
@@ -111,11 +118,9 @@ const AttemptQuiz = ({ user }) => {
   if (!quiz) {
     return (
       <div className="error-container">
-        <div className="error-message">
+        <div className="error-box">
           <h2>Quiz not found</h2>
-          <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>
-            Back to Dashboard
-          </button>
+          <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>Back to Dashboard</button>
         </div>
       </div>
     )
@@ -124,12 +129,24 @@ const AttemptQuiz = ({ user }) => {
   if (!quiz.isOpen && user.role === 'Student') {
     return (
       <div className="error-container">
-        <div className="error-message">
-          <h2>Quiz is closed</h2>
+        <div className="error-box">
+          <h2>Quiz is Closed</h2>
           <p>This quiz is not currently open for submissions.</p>
-          <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>
-            Back to Dashboard
-          </button>
+          <br />
+          <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>Back to Dashboard</button>
+        </div>
+      </div>
+    )
+  }
+
+  // Processing state — submission received, waiting for worker
+  if (processing) {
+    return (
+      <div className="attempt-quiz-container">
+        <div className="processing-banner">
+          <div className="poll-spinner" />
+          <h2>Grading in Progress</h2>
+          <p>Your submission was received successfully. The Kafka worker is calculating your score. This usually takes a few seconds…</p>
         </div>
       </div>
     )
@@ -139,55 +156,50 @@ const AttemptQuiz = ({ user }) => {
     return (
       <div className="quiz-completed-container">
         <div className="score-display">
-          <h1>Quiz Completed!</h1>
+          <h1>Quiz Completed! 🎉</h1>
           <div className="score-card">
             <h2>Your Score</h2>
-            <div className="score-number">
-              {userSubmission.totalScore}/{userSubmission.maxScore}
-            </div>
+            <div className="score-number">{userSubmission.totalScore}/{userSubmission.maxScore}</div>
             <div className="score-percentage">
               {Math.round((userSubmission.totalScore / userSubmission.maxScore) * 100)}%
             </div>
-            <p>Submitted on: {new Date(userSubmission.submittedAt).toLocaleString()}</p>
+            <p style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              Submitted on: {new Date(userSubmission.submittedAt).toLocaleString()}
+            </p>
           </div>
-          <div className="quiz-info">
-            <h3>{quiz.title}</h3>
-            <p>Teacher: {quiz.teacher.name}</p>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <h3 style={{ fontSize: '1rem', marginBottom: '0.25rem' }}>{quiz.title}</h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Teacher: {quiz.teacher.name}</p>
           </div>
-          <button onClick={() => navigate('/dashboard')}>
-            Back to Dashboard
-          </button>
+          <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>Back to Dashboard</button>
         </div>
       </div>
     )
   }
 
   const currentQ = quiz.questions[currentQuestion]
-  const answeredCount = answers.filter(ans => ans !== -1).length
+  const answeredCount = answers.filter(a => a !== -1).length
 
   return (
     <div className="attempt-quiz-container">
-      <div className="quiz-header">
-        <div className="quiz-info">
+      <div className="quiz-top-bar">
+        <div>
           <h1>{quiz.title}</h1>
           <p>Teacher: {quiz.teacher.name}</p>
         </div>
-        <div className="quiz-progress">
+        <div className="quiz-progress-info">
           <span>Question {currentQuestion + 1} of {quiz.questions.length}</span>
           <span>Answered: {answeredCount}/{quiz.questions.length}</span>
         </div>
       </div>
 
-      <div className="question-navigation">
-        <div className="question-numbers">
+      <div className="question-nav-panel">
+        <div className="question-bubbles">
           {quiz.questions.map((_, index) => (
             <div
               key={index}
-              className={`question-number ${
-                index === currentQuestion ? 'current' :
-                answers[index] !== -1 ? 'answered' : 'unanswered'
-              }`}
-              onClick={() => goToQuestion(index)}
+              className={`q-bubble ${index === currentQuestion ? 'current' : answers[index] !== -1 ? 'answered' : 'unanswered'}`}
+              onClick={() => setCurrentQuestion(index)}
             >
               {index + 1}
             </div>
@@ -195,61 +207,46 @@ const AttemptQuiz = ({ user }) => {
         </div>
       </div>
 
-      <div className="question-container">
-        <div className="question-header">
+      <div className="question-panel">
+        <div className="question-meta">
           <h2>Question {currentQuestion + 1}</h2>
-          <div className="question-marks">{currentQ.marks} marks</div>
+          <span className="question-marks-badge">{currentQ.marks} {currentQ.marks === 1 ? 'mark' : 'marks'}</span>
         </div>
-
-        <div className="question-text">
+        <div className="question-body">
           <p>{currentQ.title}</p>
-        </div>
-
-        <div className="answer-options">
-          {currentQ.answer.map((option, index) => (
-            <div
-              key={index}
-              className={`answer-option ${answers[currentQuestion] === index ? 'selected' : ''}`}
-              onClick={() => handleAnswerSelect(index)}
-            >
-              <input
-                type="radio"
-                name={`question-${currentQuestion}`}
-                checked={answers[currentQuestion] === index}
-                onChange={() => handleAnswerSelect(index)}
-              />
-              <div className="answer-text">{option}</div>
-            </div>
-          ))}
+          <div className="answer-choices">
+            {currentQ.answer.map((option, index) => (
+              <div
+                key={index}
+                className={`answer-choice ${answers[currentQuestion] === index ? 'selected' : ''}`}
+                onClick={() => handleAnswerSelect(index)}
+              >
+                <input
+                  type="radio"
+                  name={`q-${currentQuestion}`}
+                  checked={answers[currentQuestion] === index}
+                  onChange={() => handleAnswerSelect(index)}
+                />
+                <span className="choice-text">{option}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="quiz-navigation">
-        <button
-          className="btn btn-secondary"
-          onClick={prevQuestion}
-          disabled={currentQuestion === 0}
-        >
-          Previous
+      <div className="quiz-nav-bar">
+        <button className="btn btn-secondary" onClick={() => setCurrentQuestion(q => q - 1)} disabled={currentQuestion === 0}>
+          ← Previous
         </button>
-
-        <div className="nav-center">
-          <button
-            className="btn btn-primary"
-            onClick={submitQuiz}
-            disabled={submitting || user.role !== 'Student'}
-          >
-            {submitting ? 'Submitting...' :
-             user.role === 'Student' ? 'Submit Quiz' : 'Preview Only (Teacher)'}
-          </button>
-        </div>
-
         <button
-          className="btn btn-secondary"
-          onClick={nextQuestion}
-          disabled={currentQuestion === quiz.questions.length - 1}
+          className="btn btn-primary"
+          onClick={submitQuiz}
+          disabled={submitting || user.role !== 'Student'}
         >
-          Next
+          {submitting ? 'Submitting…' : user.role === 'Student' ? 'Submit Quiz' : 'Preview Only (Teacher)'}
+        </button>
+        <button className="btn btn-secondary" onClick={() => setCurrentQuestion(q => q + 1)} disabled={currentQuestion === quiz.questions.length - 1}>
+          Next →
         </button>
       </div>
     </div>

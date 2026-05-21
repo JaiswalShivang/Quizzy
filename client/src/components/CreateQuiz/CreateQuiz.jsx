@@ -101,15 +101,15 @@ const CreateQuiz = ({ user }) => {
 
   return (
     <div className="create-quiz-container">
-      <div className="header">
+      <div className="page-header">
         <h1>Create New Quiz</h1>
         <button className="back-btn" onClick={() => navigate('/dashboard')}>
-          ← Back to Dashboard
+          ← Dashboard
         </button>
       </div>
 
-      <div className="form">
-        <div className="section">
+      <div>
+        <div className="form-panel">
           <h2>Quiz Information</h2>
           <div className="form-group">
             <label>Quiz Title *</label>
@@ -122,22 +122,18 @@ const CreateQuiz = ({ user }) => {
               className="input"
             />
           </div>
-
-          <div className="form-group">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                name="isOpen"
-                checked={quiz.isOpen}
-                onChange={handleQuizChange}
-              />
-              <span>Make quiz available to students immediately</span>
-            </label>
-          </div>
+          <label className="checkbox-row">
+            <input
+              type="checkbox"
+              name="isOpen"
+              checked={quiz.isOpen}
+              onChange={handleQuizChange}
+            />
+            Make quiz available to students immediately
+          </label>
         </div>
 
-        {/* Questions Section */}
-        <div className="section">
+        <div className="form-panel">
           <h2>Questions ({quiz.questions.length})</h2>
 
           {quiz.questions.length === 0 && (
@@ -148,105 +144,60 @@ const CreateQuiz = ({ user }) => {
 
           {quiz.questions.map((question, index) => (
             <div key={index} className="question-card">
-              <div className="question-header">
-                <div className="question-info">
-                  <h3>Question {index + 1}</h3>
+              <div className="question-card-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <h3>Q{index + 1}</h3>
                   <span className="marks-badge">{question.marks} mark{question.marks !== 1 ? 's' : ''}</span>
                 </div>
-                <button
-                  className="remove-btn"
-                  onClick={() => removeQuestion(index)}
-                  title="Remove question"
-                >
-                  ✕
-                </button>
+                <button className="remove-btn" onClick={() => removeQuestion(index)} title="Remove">✕</button>
               </div>
-
-              <div className="question-content">
-                <p className="question-text">{question.title}</p>
-                <div className="answers-list">
-                  {question.answer.map((ans, i) => (
-                    <div key={i} className={`answer-item ${i === question.correctIndex ? 'correct' : ''}`}>
-                      <span className="answer-label">{String.fromCharCode(65 + i)}.</span>
-                      <span className="answer-text">{ans}</span>
-                      {i === question.correctIndex && <span className="correct-mark">✓</span>}
-                    </div>
-                  ))}
-                </div>
+              <p className="question-text">{question.title}</p>
+              <div className="answers-list">
+                {question.answer.map((ans, i) => (
+                  <div key={i} className={`answer-item ${i === question.correctIndex ? 'correct' : ''}`}>
+                    <span className="answer-label">{String.fromCharCode(65 + i)}.</span>
+                    <span className="answer-text">{ans}</span>
+                    {i === question.correctIndex && <span className="correct-mark">✓</span>}
+                  </div>
+                ))}
               </div>
             </div>
           ))}
 
        
           <div className="add-question-form">
-            <h3>Add New Question</h3>
-
+            <h3>+ Add New Question</h3>
             <div className="form-row">
               <div className="form-group">
                 <label>Question *</label>
-                <textarea
-                  name="title"
-                  value={currentQuestion.title}
-                  onChange={handleQuestionChange}
-                  placeholder="Enter your question here..."
-                  rows="3"
-                  className="textarea"
-                />
+                <textarea name="title" value={currentQuestion.title} onChange={handleQuestionChange} placeholder="Enter your question…" rows="3" className="textarea" />
               </div>
-
-              <div className="form-group marks-group">
+              <div className="form-group">
                 <label>Marks</label>
-                <input
-                  type="number"
-                  name="marks"
-                  value={currentQuestion.marks}
-                  onChange={handleQuestionChange}
-                  min="1"
-                  max="10"
-                  className="marks-input"
-                />
+                <input type="number" name="marks" value={currentQuestion.marks} onChange={handleQuestionChange} min="1" max="10" className="marks-input" />
               </div>
             </div>
-
             <div className="form-group">
-              <label>Answer Options * (Select the correct answer)</label>
-              <div className="answer-options">
+              <label>Answer Options — select the correct one</label>
+              <div className="answer-options-builder">
                 {currentQuestion.answer.map((answer, index) => (
-                  <div key={index} className="answer-option">
-                    <div className="option-label">{String.fromCharCode(65 + index)}.</div>
-                    <input
-                      type="text"
-                      value={answer}
-                      onChange={(e) => handleAnswerChange(index, e.target.value)}
-                      placeholder={`Enter option ${String.fromCharCode(65 + index)}`}
-                      className="option-input"
-                    />
-                    <label className="radio-label">
-                      <input
-                        type="radio"
-                        name="correctAnswer"
-                        checked={currentQuestion.correctIndex === index}
-                        onChange={() => setCurrentQuestion(prev => ({ ...prev, correctIndex: index }))}
-                      />
-                      <span>Correct</span>
+                  <div key={index} className="answer-option-row">
+                    <span className="option-letter">{String.fromCharCode(65 + index)}.</span>
+                    <input type="text" value={answer} onChange={(e) => handleAnswerChange(index, e.target.value)} placeholder={`Option ${String.fromCharCode(65 + index)}`} className="option-input" />
+                    <label className="correct-radio-label">
+                      <input type="radio" name="correctAnswer" checked={currentQuestion.correctIndex === index} onChange={() => setCurrentQuestion(prev => ({ ...prev, correctIndex: index }))} />
+                      Correct
                     </label>
                   </div>
                 ))}
               </div>
             </div>
-
-            <button className="add-question-btn" onClick={addQuestion}>
-              + Add Question
-            </button>
+            <button className="add-question-btn" onClick={addQuestion}>+ Add Question</button>
           </div>
         </div>
 
-        <div className="form-actions">
-          <button
-            className="create-quiz-btn"
-            onClick={createQuiz}
-            disabled={!quiz.title || quiz.questions.length === 0}
-          >
+        <div className="form-actions-row">
+          <button className="create-quiz-btn" onClick={createQuiz} disabled={!quiz.title || quiz.questions.length === 0}>
             Create Quiz ({quiz.questions.length} question{quiz.questions.length !== 1 ? 's' : ''})
           </button>
         </div>

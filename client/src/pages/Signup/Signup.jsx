@@ -1,5 +1,4 @@
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { toast } from "react-toastify";
 import api from "../../api";
 import "./Signup.css";
@@ -7,101 +6,76 @@ import { useNavigate } from "react-router-dom";
 
 const Register = () => {
   const navigate = useNavigate();
-
-  const [user, setUser] = useState({
-    name: "",
-    email: "",
-    password: "",
-    reEnterPassword: "",
-    role: "Student",
-  });
+  const [form, setForm] = useState({ name: "", email: "", password: "", reEnterPassword: "", role: "Student" });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setUser({ ...user, [name]: value });
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  useEffect(() => {
-    console.log(user);
-  }, [user]);
-
-  const register = async () => {
-    const { name, email, password, reEnterPassword, role } = user;
-    if (name && email && password && password === reEnterPassword && role) {
-      try {
-        const res = await api.post("/auth/signup", { name, email, password, role });
-        toast.success(res.data.message);
-        navigate("/login");
-      } catch (err) {
-        console.log(err);
-        toast.error(err.response?.data?.message || "Registration failed");
-      }
-    } else {
-      toast.warning("Please fill all fields correctly and ensure passwords match");
+  const register = async (e) => {
+    e?.preventDefault();
+    const { name, email, password, reEnterPassword, role } = form;
+    if (!name || !email || !password || !role) {
+      toast.warning("Please fill all fields");
+      return;
+    }
+    if (password !== reEnterPassword) {
+      toast.warning("Passwords do not match");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await api.post("/auth/signup", { name, email, password, role });
+      toast.success(res.data.message || "Account created!");
+      navigate("/login");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="box">
-      <div className="register">
-        <h1>Register</h1>
-        <input
-          type="text"
-          name="name"
-          value={user.name}
-          placeholder="Your Name"
-          onChange={handleChange}
-        />
-        <input
-          type="text"
-          name="email"
-          value={user.email}
-          placeholder="Your Email"
-          onChange={handleChange}
-        />
-        <input
-          type="password"
-          name="password"
-          value={user.password}
-          placeholder="Your Password"
-          onChange={handleChange}
-        />
-        <input
-          type="password"
-          name="reEnterPassword"
-          value={user.reEnterPassword}
-          placeholder="Re-Enter Password"
-          onChange={handleChange}
-        />
-        <select
-          name="role"
-          value={user.role}
-          onChange={handleChange}
-          style={{
-            borderRadius: '8px',
-            border: '2px solid #dddfe2',
-            outline: 'none',
-            color: '#1d2129',
-            margin: '0.5rem 0',
-            padding: '0.5rem 0.75rem',
-            width: '100%',
-            fontSize: '1rem',
-          }}
-        >
-          <option value="Student">Student</option>
-          <option value="Teacher">Teacher</option>
-        </select>
-        <div className="button" onClick={register}>
-          Register
-        </div>
-        <div>or</div>
-        <div
-          className="button"
-          onClick={() => {
-            navigate("/login");
-          }}
-        >
-          Login
+    <div className="signup-page">
+      <div className="signup-card">
+        <div className="signup-card-stripe" />
+        <div className="signup-card-body">
+          <h1>Create Account</h1>
+          <p className="subtitle">Join Quizzy as a student or teacher</p>
+          <form className="signup-form" onSubmit={register}>
+            <div>
+              <label className="form-label" htmlFor="name">Full Name</label>
+              <input id="name" type="text" name="name" value={form.name} onChange={handleChange} placeholder="Your name" autoComplete="name" />
+            </div>
+            <div>
+              <label className="form-label" htmlFor="reg-email">Email Address</label>
+              <input id="reg-email" type="email" name="email" value={form.email} onChange={handleChange} placeholder="you@example.com" autoComplete="email" />
+            </div>
+            <div>
+              <label className="form-label" htmlFor="reg-password">Password</label>
+              <input id="reg-password" type="password" name="password" value={form.password} onChange={handleChange} placeholder="••••••••" autoComplete="new-password" />
+            </div>
+            <div>
+              <label className="form-label" htmlFor="re-password">Confirm Password</label>
+              <input id="re-password" type="password" name="reEnterPassword" value={form.reEnterPassword} onChange={handleChange} placeholder="••••••••" autoComplete="new-password" />
+            </div>
+            <div>
+              <label className="form-label" htmlFor="role">I am a</label>
+              <select id="role" name="role" value={form.role} onChange={handleChange} className="role-select">
+                <option value="Student">Student</option>
+                <option value="Teacher">Teacher</option>
+              </select>
+            </div>
+            <button type="submit" className="signup-btn" disabled={loading}>
+              {loading ? "Creating account…" : "Create Account"}
+            </button>
+          </form>
+          <div className="signup-divider">or</div>
+          <button className="signup-alt-btn" onClick={() => navigate("/login")}>
+            Sign In Instead
+          </button>
         </div>
       </div>
     </div>
